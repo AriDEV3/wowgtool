@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WoW Cross-Realm Inventory Ledger</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- A. SPERRBILDSCHIRM (Wird dynamisch befüllt) -->
+    <div id="setup-screen" class="setup-container"></div>
+
+    <!-- B. ANIMIERTER LOADING-SCREEN (Wird dynamisch befüllt) -->
+    <div id="loading-screen" class="loading-container hidden"></div>
+
+    <!-- C. HAUPT-INTERFACE -->
+    <div id="main-app-layout" class="hidden">
+        
+        <!-- 1. FIXIERTE HEADER-BAR (Wird dynamisch befüllt) -->
+        <header id="app-header-mount" class="app-header"></header>
+
+        <!-- ZENTRALES SIDEBAR-FRAMEWORK -->
+        <div class="app-body-wrapper">
+            
+            <!-- 2. VERTICAL SIDEBAR MENU (Wird dynamisch befüllt) -->
+            <aside id="app-sidebar-mount" class="app-sidebar"></aside>
+
+            <!-- SCROLLBARER ARBEITSBEREICH -->
+            <main class="app-content-wrapper">
+                <!-- SEITE A: LEERES HAUPTMENÜ -->
+                <div id="page-dashboard" class="page-view"></div>
+                <!-- SEITE B: DAS BESTANDS-LEDGER -->
+                <div id="page-items" class="page-view hidden"></div>
+            </main>
+        </div>
+
+        <!-- 3. FIXIERTE FOOTER-BAR (Wird dynamisch befüllt) -->
+        <footer id="app-footer-mount" class="app-footer"></footer>
+    </div>
+
+    <!-- System-Laufzeitskripte -->
+    <script src="chart-filter.js"></script>
+    <script src="chart.js"></script>
+    <script src="renderer-sort.js"></script>
+    <script src="renderer-html.js"></script>
+    
+    <!-- 1. HTML-STRUKTUR ZUERST ZUSAMMENBAUEN -->
+    <script src="renderer-loader.js"></script>
+    
+    <!-- 2. ZUSATZFUNKTIONEN FÜR THEMEN, SETTINGS UND EXPORT -->
+    <script src="renderer-theme.js"></script>
+    <script src="renderer-settings.js"></script>
+    <script src="renderer-export.js"></script>
+    
+    <!-- 3. NAVIGATION UND HAUPT-CONTROLLER AKTIVIEREN -->
+    <script src="renderer-nav.js"></script>
+    <script src="renderer.js"></script>
+</body>
+</html>
+
+

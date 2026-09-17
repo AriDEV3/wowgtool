@@ -1,0 +1,36 @@
+<div class="wealth-row">
+    <div class="chart-wrapper">
+        <div class="chart-header-row">
+            <div class="summary-title" style="margin: 0; font-size: 0.75em;">Vermoegensentwicklung (Trend)</div>
+            <div class="chart-tabs">
+                <button class="tab-btn active" id="tab-hourly">Hourly</button>
+                <button class="tab-btn" id="tab-daily">Daily</button>
+                <button class="tab-btn" id="tab-7day">7 Days</button>
+            </div>
+        </div>
+        <div id="chart-area" style="width: 100%; height: 105px; position: relative;">
+            <canvas id="trendCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-title">Gesamtwert</div>
+        <div id="total-rsa" class="gold">0g</div>
+        <div id="delta-display" class="delta-text neutral"> kein vorheriger Snapshot</div>
+    </div>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th id="th-name">Gegenstand <span class="sort-icon">-</span></th>
+            <th>Lagerorte</th>
+            <th id="th-qty">Gesamtmenge <span class="sort-icon">-</span></th>
+            <th id="th-trend">Verlauf (14 Tage) <span class="sort-icon">-</span></th> 
+            <th id="th-recent" class="active-sort">Preis <span class="sort-icon">▼</span></th>
+        </tr>
+    </thead>
+    <tbody id="table-body">
+        <!-- Dynamische Zeilen -->
+    </tbody>
+</table>

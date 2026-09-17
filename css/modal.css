@@ -1,0 +1,209 @@
+/* ==========================================================================
+   4. REGIONS-SETTINGS MODAL (DASHBOARD-OVERLAY)
+   ========================================================================== */
+.modal-overlay { 
+    position: fixed; 
+    top: 0; left: 0; width: 100vw; height: 100vh; 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(4px); 
+    display: flex; align-items: center; justify-content: center; 
+    z-index: 9999; 
+    transition: all 0.2s ease; 
+}
+
+.modal-card { 
+    background: var(--bg-card); 
+    border: 1px solid var(--bg-border); 
+    border-radius: 14px; 
+    width: 100%; max-width: 400px; 
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3); 
+    display: flex; flex-direction: column; 
+    overflow: hidden; 
+    animation: modalSlideUp 0.15s ease-out; 
+}
+
+@keyframes modalSlideUp { 
+    from { transform: translateY(20px); opacity: 0; } 
+    to { transform: translateY(0); opacity: 1; } 
+}
+
+.modal-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 16px 20px; border-bottom: 1px solid var(--bg-border); 
+    background: var(--bg-secondary); 
+}
+
+.modal-header h3 { margin: 0; color: var(--text-heading); font-size: 1.1em; text-transform: uppercase; font-weight: 800; }
+
+.modal-close-x { background: transparent; border: none; color: var(--text-muted); font-size: 1.6em; cursor: pointer; line-height: 1; padding: 0; }
+.modal-close-x:hover { color: var(--text-dark); }
+
+.modal-body { padding: 20px; }
+
+.settings-group label { display: block; font-size: 0.85em; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+.settings-hint { font-size: 0.78em; color: var(--text-muted); margin: 8px 0 0 0; line-height: 1.4; font-weight: 600; }
+
+.modal-footer { padding: 12px 20px; border-top: 1px solid var(--bg-border); }
+
+button#settings-btn svg { transition: transform 0.25s ease-in-out; }
+button#settings-btn:hover svg { transform: rotate(45deg); color: var(--blue-light); }
+
+
+/* ==========================================================================
+   6. OPTIMIERTES ACCOUNT-VERKNÜPFUNG SCALING (SPERRBILDSCHIRM)
+   ========================================================================== */
+.setup-card { 
+    background: var(--bg-card); 
+    border: 1px solid var(--bg-border); 
+    padding: 36px 40px; 
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+    max-width: 440px; 
+    width: 100%; 
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 16px; /* Gleichmäßiges vertikales Scaling */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.setup-card h2 { 
+    margin: 0;
+    color: var(--text-heading); 
+    font-size: 1.6em; 
+    text-transform: uppercase; 
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.setup-card p { 
+    color: var(--text-muted); 
+    font-size: 0.9em; 
+    line-height: 1.5; 
+    margin: 0 0 4px 0;
+}
+
+.setup-input { 
+    width: 100%; 
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    border: 2px solid var(--bg-border); 
+    background: var(--bg-secondary); 
+    color: var(--text-dark); 
+    font-size: 1.05em; 
+    font-weight: 700; 
+    text-align: center; 
+    text-transform: uppercase; 
+    outline: none; 
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.setup-input:focus {
+    border-color: var(--blue-accent);
+    background: var(--bg-card);
+}
+
+.setup-region-wrapper {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.setup-region-label {
+    display: block; 
+    font-size: 0.78em; 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    color: var(--text-muted); 
+    letter-spacing: 0.5px;
+}
+
+.setup-region-select {
+    width: 100%; 
+    padding: 10px 14px; 
+    font-size: 0.95em; 
+    font-weight: 700; 
+    border: 2px solid var(--bg-border);
+    background: var(--bg-secondary);
+    color: var(--text-dark);
+    border-radius: 8px;
+    cursor: pointer;
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+}
+
+.setup-region-select:focus {
+    border-color: var(--blue-accent);
+}
+
+.setup-btn { 
+    width: 100%; 
+    padding: 12px; 
+    font-size: 0.95em;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: var(--blue-accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.setup-btn:hover {
+    background: var(--blue-hover);
+}
+
+.setup-btn:active {
+    transform: scale(0.98);
+}
+
+
+/* ==========================================================================
+   7. ANIMIERTER LOADING SCREEN STYLES
+   ========================================================================== */
+.loading-container {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--bg-body);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 99999; /* Schwebt über absolut allem */
+}
+
+.loading-card {
+    display: flex; flex-direction: column; align-items: center;
+    background: var(--bg-card); border: 1px solid var(--bg-border);
+    padding: 40px 50px; border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    max-width: 420px; width: 100%;
+}
+
+/* Der kreisende CSS-Vektor-Spinner */
+.loading-spinner {
+    width: 45px; height: 45px;
+    border: 4px solid var(--bg-border);
+    border-top-color: var(--blue-accent); /* Nutzt das Highlight deines aktiven Themes */
+    border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+    margin-bottom: 24px;
+}
+
+@keyframes spinLoader {
+    to { transform: rotate(360deg); }
+}
+
+.loading-card h3 {
+    margin: 0 0 8px 0; font-size: 1.3em;
+    color: var(--text-heading); text-transform: uppercase; font-weight: 800;
+}
+
+.loading-card p {
+    margin: 0; font-size: 0.9em; line-height: 1.5;
+    color: var(--text-muted); font-weight: 600;
+}

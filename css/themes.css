@@ -1,0 +1,31 @@
+/* --- 1. THEMEN-DEFINITIONEN --- */
+:root {
+    --bg-body: #f4f6f9; --bg-card: #ffffff; --bg-secondary: #f8fafc; --bg-border: #e2e8f0;
+    --bg-input: #f8fafc; --bg-input-border: #cbd5e1; --text-main: #333c4d; --text-heading: #1e293b;
+    --text-muted: #64748b; --text-dark: #0f172a; --gold-accent: #b45309; --blue-accent: #2563eb;
+    --blue-hover: #1d4ed8; --blue-light: #0284c7; --bg-tag-loc: #f1f5f9; --border-tag-loc: #cbd5e1; --text-tag-loc: #334155;
+}
+[data-theme="dark"] {
+    --bg-body: #0b0f19; --bg-card: #1e293b; --bg-secondary: #111827; --bg-border: #475569;
+    --bg-input: #111827; --bg-input-border: #64748b; --text-main: #f1f5f9; --text-heading: #ffffff;
+    --text-muted: #94a3b8; --text-dark: #f8fafc; --gold-accent: #fbc02d; --blue-accent: #38bdf8;
+    --blue-hover: #7dd3fc; --blue-light: #0ea5e9; --bg-tag-loc: #334155; --border-tag-loc: #64748b; --text-tag-loc: #f1f5f9;
+}
+[data-theme="obsidian"] {
+    --bg-body: #090d16; --bg-card: #151b26; --bg-secondary: #1f2736; --bg-border: #2d3748;
+    --bg-input: #090d16; --bg-input-border: #4a5568; --text-main: #e2e8f0; --text-heading: #ffffff;
+    --text-muted: #a0aec0; --text-dark: #ffffff; --gold-accent: #00f5d4; --blue-accent: #00b4d8;
+    --blue-hover: #90e0ef; --blue-light: #00f5d4; --bg-tag-loc: #1f2736; --border-tag-loc: #00b4d8; --text-tag-loc: #00f5d4;
+}
+[data-theme="horde"] {
+    --bg-body: #140506; --bg-card: #280f11; --bg-secondary: #1c0a0c; --bg-border: #5c1d24;
+    --bg-input: #1c0a0c; --bg-input-border: #7f2d37; --text-main: #f3e8e9; --text-heading: #ffffff;
+    --text-muted: #cca7a9; --text-dark: #ffffff; --gold-accent: #f59e0b; --blue-accent: #ef4444;
+    --blue-hover: #f87171; --blue-light: #f87171; --bg-tag-loc: #44151a; --border-tag-loc: #7f2d37; --text-tag-loc: #f3e8e9;
+}
+[data-theme="alliance"] {
+    --bg-body: #050b14; --bg-card: #0f1a30; --bg-secondary: #0a101f; --bg-border: #1e3a5f;
+    --bg-input: #0a101f; --bg-input-border: #2a5a8f; --text-main: #e2e8f0; --text-heading: #ffffff;
+    --text-muted: #93c5fd; --text-dark: #ffffff; --gold-accent: #fbbf24; --blue-accent: #3b82f6;
+    --blue-hover: #60a5fa; --blue-light: #60a5fa; --bg-tag-loc: #1e2942; --border-tag-loc: #3b82f6; --text-tag-loc: #e2e8f0;
+}
