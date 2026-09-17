@@ -1,64 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>WoW Cross-Realm Inventory Ledger</title>
-    <link rel="stylesheet" href="style.css">
+    <title>WoW Cross-Realm Ledger</title>
     <style>
+        /* Verhindert das Flimmern beim Laden */
         .hidden { display: none !important; }
     </style>
+    <!-- Direktes Laden aller CSS-Komponenten aus deinem css/ Ordner -->
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/modal.css">
 </head>
 <body>
 
-    <!-- A. SPERRBILDSCHIRM (Wird dynamisch befüllt) -->
-    <div id="setup-screen" class="setup-container"></div>
+    <!-- ========================================== -->
+    <!-- SETUP / ACCOUNT VERKNÜPFEN SPERRBILDSCHIRM -->
+    <!-- ========================================== -->
+    <div id="setup-screen" class="setup-container">
+        <div class="setup-card">
+            <h2>Account verknüpfen</h2>
+            <p>Bitte gib deinen World of Warcraft Account-Ordnernamen ein (z.B. 12345678#1 ), um dein Inventar zu laden.</p>
+            <input type="text" id="setup-account-input" class="setup-input" placeholder="ACCOUNTNAME">
+            <div class="setup-region-wrapper">
+                <label class="setup-region-label">Spiel-Region festlegen:</label>
+                <select id="setup-region-select" class="setup-region-select">
+                    <option value="eu">Europa (EU)</option>
+                    <option value="us">Amerika (US)</option>
+                </select>
+            </div>
+            <button id="setup-submit-btn" class="setup-btn">Verbindung herstellen</button>
+        </div>
+    </div>
 
-    <!-- B. ANIMIERTER LOADING-SCREEN (Wird dynamisch befüllt) -->
-    <div id="loading-screen" class="loading-container hidden"></div>
-
-    <!-- C. HAUPT-INTERFACE -->
+    <!-- ========================================== -->
+    <!-- HAUPT-APPLICATION LAYOUT                   -->
+    <!-- ========================================== -->
     <div id="main-app-layout" class="hidden">
         
-        <!-- 1. FIXIERTE HEADER-BAR (Wird dynamisch befüllt) -->
-        <header id="app-header-mount" class="app-header"></header>
+        <!-- FIXIERTE HEADER BAR -->
+        <header class="app-header">
+            <div class="header-branding">
+                <h1>Cross-Realm Ledger</h1>
+                <p>Aggregiertes Bestands- und Lagerhaltungssystem</p>
+            </div>
+            <div class="header-controls">
+                <input type="text" id="account-input" class="setup-input" style="width:160px; font-size:0.85em; text-align: left;" placeholder="Account wechseln...">
+                <span id="status-msg">Bereit zum Einlesen.</span>
+                <button id="export-btn" class="setup-btn" style="width:auto; padding:6px 12px;">EXPORT DATA</button>
+                <button id="refresh-btn" class="setup-btn" style="width:auto; padding:6px 12px;">Inventar synchronisieren</button>
+                <select id="theme-select" class="theme-selector">
+                    <option value="light">Slate Light</option>
+                    <option value="dark">Dark Mode</option>
+                    <option value="obsidian">Obsidian Teal</option>
+                    <option value="horde">Horde Crimson</option>
+                    <option value="alliance">Alliance Royal</option>
+                </select>
+            </div>
+        </header>
 
-        <!-- ZENTRALES SIDEBAR-FRAMEWORK -->
+        <!-- HAUPT-BODY (SIDEBAR + CONTENT) -->
         <div class="app-body-wrapper">
             
-            <!-- 2. VERTICAL SIDEBAR MENU (Wird dynamisch befüllt) -->
-            <aside id="app-sidebar-mount" class="app-sidebar"></aside>
+            <!-- VERTIKALE SIDEBAR NAVIGATION -->
+            <aside class="app-sidebar">
+				<nav class="sidebar-nav">
+					<button id="menu-btn-dashboard" class="sidebar-menu-item active">Hauptmenü</button>
+					<button id="menu-btn-items" class="sidebar-menu-item">Gegenstände</button>
+					<!-- NEUER BUTTON UNTER GEGENSTÄNDE -->
+					<button id="menu-btn-characters" class="sidebar-menu-item">Charaktere</button>
+				</nav>
+			</aside>
 
-            <!-- SCROLLBARER ARBEITSBEREICH -->
+            <!-- SEITEN-INHALTE -->
             <main class="app-content-wrapper">
-                <!-- SEITE A: LEERES HAUPTMENÜ -->
-                <div id="page-dashboard" class="page-view"></div>
-                <!-- SEITE B: DAS BESTANDS-LEDGER -->
-                <div id="page-items" class="page-view hidden"></div>
+                
+                <!-- ANSICHT: DASHBOARD -->
+                <div id="page-dashboard" class="page-view">
+                    <div class="wealth-row">
+                        <div class="chart-wrapper">
+							<div class="chart-header-row">
+								<span class="summary-title">Vermögensentwicklung (Trend)</span>
+								<div class="chart-tabs">
+									<button id="tab-hourly" class="tab-btn active">Hourly</button>
+									<button id="tab-daily" class="tab-btn">Daily</button>
+									<button id="tab-7day" class="tab-btn">7 Days</button>
+								</div>
+							</div>
+							<!-- WICHTIG: position: relative hinzufügen, damit der HTML-Tooltip andocken kann -->
+							<div id="chart-area" style="height:115px; width: 100%; position: relative;">
+								<!-- trendCanvas wird hier generiert -->
+								
+								<!-- NEUER ABSOLUT POSITIONIERTER HTML-TOOLTIP -->
+								<div id="trend-html-tooltip" class="hidden" style="position: absolute; background: #0f172a; color: #ffffff; padding: 6px 10px; border-radius: 4px; font-size: 11px; pointer-events: none; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #1e293b; min-width: 120px; line-height: 1.4;">
+									<div id="tooltip-date" style="color: #94a3b8; font-weight: 500; padding-bottom: 2px;">-</div>
+									<div id="tooltip-gold" style="color: #ffb400; font-weight: 700;">-</div>
+								</div>
+							</div>
+						</div>
+                        <div class="summary-card" style="justify-content: flex-start; gap: 8px;">
+                            <div>
+                                <span class="summary-title">Gesamtwert</span>
+                                <div id="total-rsa" class="gold">0g</div>
+                                <div id="delta-display" class="delta-text neutral">kein vorheriger Snapshot</div>
+                            </div>
+                            <div style="border-top: 1px solid var(--bg-border); padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85em;">
+                                    <span style="color: var(--text-muted); font-weight: 600;">Flüssiges Gold:</span>
+                                    <strong id="liquid-gold-display" style="color: #ffb400; font-family: monospace;">0g</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 0.85em;">
+                                    <span style="color: var(--text-muted); font-weight: 600;">Materialwert:</span>
+                                    <strong id="item-gold-display" style="color: var(--blue-light); font-family: monospace;">0g</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <h2>Willkommen im Hauptmenü</h2>
+                    <p>Bereit für zukünftige Statistiken und Übersichten.</p>
+                </div>
+
+                <!-- ANSICHT: GEGENSTÄNDE LEDGER -->
+                <div id="page-items" class="page-view hidden">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th id="th-name" style="cursor:pointer;">Gegenstand <span class="sort-icon">-</span></th>
+                                <th>Lagerorte</th>
+                                <th id="th-qty" style="cursor:pointer;">Gesamtmenge <span class="sort-icon">-</span></th>
+                                <th id="th-trend" style="cursor:pointer;">Verlauf (14 Tage) <span class="sort-icon">-</span></th>
+                                <th id="th-recent" style="cursor:pointer;">Preis <span class="sort-icon">-</span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Durch renderer.js befüllt -->
+                        </tbody>
+                    </table>
+                </div>
+				
+				<!-- ANSICHT: CHARAKTER LISTE -->
+				<div id="page-characters" class="page-view hidden">
+					<table style="width: 100%;">
+						<thead>
+							<tr>
+								<th>Charaktername</th>
+								<th>Realm / Server</th>
+								<th style="text-align: right; padding-right: 24px;">Flüssiges Gold</th>
+							</tr>
+						</thead>
+						<tbody id="character-table-body">
+							<!-- Durch renderer-loader.js befüllt -->
+						</tbody>
+					</table>
+				</div>
+
             </main>
         </div>
 
-        <!-- 3. FIXIERTE FOOTER-BAR (Wird dynamisch befüllt) -->
-        <footer id="app-footer-mount" class="app-footer"></footer>
+        <!-- FIXIERTER FOOTER -->
+        <footer class="app-footer">
+            <div class="footer-segment">System-Status: <strong>Online</strong></div>
+            <div class="footer-segment text-right">© 2026 WoW Ledger Tool</div>
+        </footer>
     </div>
 
-    <!-- System-Laufzeitskripte -->
-    <script src="chart-filter.js"></script>
-    <script src="chart.js"></script>
-    <script src="renderer-sort.js"></script>
-    <script src="renderer-html.js"></script>
-    
-    <!-- 1. HTML-STRUKTUR ZUERST ZUSAMMENBAUEN -->
-    <script src="renderer-loader.js"></script>
-    
-    <!-- 2. ZUSATZFUNKTIONEN FÜR THEMEN, SETTINGS UND EXPORT -->
+    <!-- LADE-SCREEN OVERLAY -->
+    <div id="loading-screen" class="loading-container hidden">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <h3>Datenverbindung wird hergestellt</h3>
+            <p id="loading-msg-sub">Analysiere BankSnapshot.lua und synchronisiere TSM-Datenströme...</p>
+        </div>
+    </div>
+
+    <!-- DEINE MODULARE SKRIPT-STRUKTUR -->
     <script src="renderer-theme.js"></script>
+    <script src="renderer-nav.js"></script>
+    <script src="renderer-sort.js"></script>
+    <script src="renderer-html.js"></script> <!-- KORREKTUR: Deine echte HTML-Datei -->
+    <script src="trend-utils.js"></script>
+    <script src="trend.js"></script>
     <script src="renderer-settings.js"></script>
     <script src="renderer-export.js"></script>
-    
-    <!-- 3. NAVIGATION UND HAUPT-CONTROLLER AKTIVIEREN -->
-    <script src="renderer-nav.js"></script>
+    <script src="renderer-loader.js"></script>
     <script src="renderer.js"></script>
 </body>
 </html>
-
-

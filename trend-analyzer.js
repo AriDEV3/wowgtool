@@ -1,7 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
-function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb) {
+/**
+ * Verarbeitet Markttrends, Sparklines und berechnet den kumulierten Gesamtwert (Gold + Items).
+ */
+function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
     const historyPath = path.join(__dirname, 'history_log.json');
     let history = [];
     if (fs.existsSync(historyPath)) {
@@ -11,9 +14,10 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb) {
     const now = new Date();
     const target14DaysAgoMs = now.getTime() - (14 * 24 * 60 * 60 * 1000);
     
-    let referenceSnapshot = history.length > 0 ? history : null; 
+    let referenceSnapshot = null; 
     let bestDiff = Infinity;
 
+    // 14-Tage-Vergleichspunkt für die Sparklines ermitteln
     history.forEach(snap => {
         if (snap.rawTimestamp) {
             const snapTime = new Date(snap.rawTimestamp).getTime();
@@ -25,57 +29,78 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb) {
         }
     });
 
+    // WICHTIG FÜR DEN 0g-FIX: Den unmittelbar letzten Snapshot für den direkten Vorher-Nachher-Vergleich holen
     const lastSnapshot = history.length > 0 ? history[history.length - 1] : null;
     const enrichedItems = [];
-    let totalMixedGoldSum = 0; 
+    
+    // --- 1. VOLUMENBERECHNUNG & CHARAKTERLISTE ---
+    let totalCharacterGoldSum = 0;
+    let totalItemGoldSum = 0; 
+    const characterGoldList = [];
 
-    // 1. DURCHLAUF: Gesamtwert berechnen basierend auf der neuen Hierarchie
-    for (const item of masterItemMap.values()) {
-        const tsmMetrics = priceMap.get(item.id) || { regionMarketValue: 0, regionAvgSalePrice: 0, realmMarketValue: 0, realmRecent: 0 };
-        
-        const rsaGold = (tsmMetrics.regionAvgSalePrice || 0) / 10000;
-        const recentGold = (tsmMetrics.realmRecent || 0) / 10000;
-
-        // ERZWUNGENE PRIORISIERUNG: Nutze RSA (Region), außer der Wert ist 0 -> Dann nutze Recent (Realm)
-        let determinedPrice = rsaGold > 0 ? rsaGold : recentGold;
-        totalMixedGoldSum += (determinedPrice * item.totalQty); 
+    if (db && db.realms) {
+        for (const [realmName, characters] of Object.entries(db.realms)) {
+            for (const [charName, charData] of Object.entries(characters)) {
+                if (charData && charData.gold !== undefined) {
+                    const rawGoldValue = parseFloat(charData.gold);
+                    if (!isNaN(rawGoldValue)) {
+                        totalCharacterGoldSum += (rawGoldValue / 10000); // Kupfer -> Gold
+                        
+                        characterGoldList.push({
+                            name: charName,
+                            realm: realmName,
+                            goldKupfer: rawGoldValue
+                        });
+                    }
+                }
+            }
+        }
     }
 
-    // 2. DURCHLAUF: Tabellenaufbereitung und 14-Tage-Trend-Filter
+    characterGoldList.sort((a, b) => b.goldKupfer - a.goldKupfer);
+
+    // TSM-Marktwerte akkumulieren
+    for (const item of masterItemMap.values()) {
+        const tsmMetrics = priceMap.get(item.id) || { regionAvgSalePrice: 0, realmRecent: 0 };
+        const rsaGold = (tsmMetrics.regionAvgSalePrice || 0) / 10000;
+        const recentGold = (tsmMetrics.realmRecent || 0) / 10000;
+        let determinedPrice = rsaGold > 0 ? rsaGold : recentGold;
+        totalItemGoldSum += (determinedPrice * item.totalQty); 
+    }
+
+    // Aktueller mathematischer Gesamtwert
+    const totalMixedGoldSum = totalCharacterGoldSum + totalItemGoldSum;
+
+    // --- KORREKTUR DER DELTA-LOGIK ---
+    // Wenn ein letzter Snapshot existiert, vergleichen wir den JETZIGEN Wert mit dem DIREKT LETZTEN Wert.
+    // Falls kein Snapshot existiert, ist das Delta logischerweise 0.
+    const roundedCurrentValue = Math.round(totalMixedGoldSum);
+    const roundedLastValue = lastSnapshot ? Math.round(lastSnapshot.value) : roundedCurrentValue;
+    const deltaGold = roundedCurrentValue - roundedLastValue;
+
+    // --- 2. DURCHLAUF: ENRICHMENT FÜR GEGENSTÄNDE ---
     for (const item of masterItemMap.values()) {
         const name = namesDb[item.id] || `Unbekannter Gegenstand (#${item.id})`;
         const tsmMetrics = priceMap.get(item.id) || { regionMarketValue: 0, regionAvgSalePrice: 0, realmMarketValue: 0, realmRecent: 0 };
         
         const rsaGold = (tsmMetrics.regionAvgSalePrice || 0) / 10000;
         const recentGold = (tsmMetrics.realmRecent || 0) / 10000;
-        
-        // Marktwert-Quellen in Gold umrechnen
         const regionMvGold = (tsmMetrics.regionMarketValue || 0) / 10000;
         const realmMvGold = (tsmMetrics.realmMarketValue || 0) / 10000;
 
-        // --- DEINE NEUE STRIKTE ANZEIGE-LOGIK ---
-        // Nutze Recent NUR, wenn die regionale CSV für dieses Item keinen Eintrag (0) hat!
         let activeLivePriceGold = rsaGold > 0 ? rsaGold : recentGold;
-        
-        // Passenden historischen Marktwert-Vergleichswert bestimmen
         let activeMarketValueGold = rsaGold > 0 ? regionMvGold : realmMvGold;
         if (activeMarketValueGold === 0) activeMarketValueGold = realmMvGold || regionMvGold;
 
         const totalItemWorthActive = activeLivePriceGold * item.totalQty; 
 
-        // 14-Tage-Historienbasis aus Log laden
         let historicPriceBasis = 0;
         if (referenceSnapshot && referenceSnapshot.itemPrices && referenceSnapshot.itemPrices[item.id] !== undefined) {
             historicPriceBasis = referenceSnapshot.itemPrices[item.id];
         }
 
-        // Selektive Überschreibung bei fehlendem Log-Eintrag
         if (historicPriceBasis === 0 || historicPriceBasis === activeLivePriceGold) {
-            if (activeMarketValueGold > 0 && activeLivePriceGold !== activeMarketValueGold) {
-                historicPriceBasis = activeMarketValueGold;
-            } else {
-                historicPriceBasis = activeLivePriceGold;
-            }
+            historicPriceBasis = (activeMarketValueGold > 0 && activeLivePriceGold !== activeMarketValueGold) ? activeMarketValueGold : activeLivePriceGold;
         }
 
         let priceFluctuation = 0;
@@ -88,7 +113,7 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb) {
             name: name,
             regionSaleAvgGold: rsaGold,
             marketValueGold: activeMarketValueGold,
-            dbRecentGold: activeLivePriceGold, // Wird sauber an das UI (Preis-Spalte) übergeben
+            dbRecentGold: activeLivePriceGold, 
             totalMarketValueGold: activeMarketValueGold * item.totalQty,
             totalRecentValueGold: totalItemWorthActive, 
             totalSaleAvgValueGold: rsaGold * item.totalQty,
@@ -97,37 +122,36 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb) {
         });
     }
 
-    // 3. Snapshot in history_log.json sichern
+    // --- 3. HISTORIE AKTUALISIEREN ---
     const currentDate = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const currentTime = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const isoString = new Date().toISOString();
 
     const currentItemPrices = {};
-    enrichedItems.forEach(i => {
-        // Speichere die im UI aktive Preisquelle ab, um fehlerfreie Sparklines im nächsten Durchlauf zu garantieren
-        currentItemPrices[i.id] = i.dbRecentGold;
-    });
+    enrichedItems.forEach(i => { currentItemPrices[i.id] = i.dbRecentGold; });
 
-    const previousTotal = referenceSnapshot ? referenceSnapshot.value : totalMixedGoldSum;
-    const deltaGold = totalMixedGoldSum - previousTotal;
-
-    if (history.length === 0 || (lastSnapshot && lastSnapshot.value !== totalMixedGoldSum)) {
+    // Wir loggen nur, wenn sich der Wert geändert hat, um die history_log.json schlank zu halten.
+    // Aber durch den obigen Fix berechnet sich das Delta nun unabhängig davon taggenau richtig!
+    if (history.length === 0 || (lastSnapshot && Math.round(lastSnapshot.value) !== roundedCurrentValue)) {
         history.push({ 
             date: currentDate,
             time: currentTime,
-            value: Math.round(totalMixedGoldSum),
+            value: roundedCurrentValue,
             rawTimestamp: isoString,
             itemPrices: currentItemPrices
         });
-        if (history.length > 150) history.shift(); 
+        if (history.length > 200) history.shift(); 
         fs.writeFileSync(historyPath, JSON.stringify(history, null, 2), 'utf8');
     }
 
     return { 
         items: enrichedItems,
         totalValue: totalMixedGoldSum,
-        delta: deltaGold,
-        historyLog: history
+        liquidGold: totalCharacterGoldSum,
+        itemValue: totalItemGoldSum,
+        delta: deltaGold, // Liefert jetzt bei unveränderten Werten exakt 0 zurück
+        historyLog: history,
+        characterList: characterGoldList
     };
 }
 

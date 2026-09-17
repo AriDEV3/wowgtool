@@ -1,5 +1,34 @@
-<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; min-height: 400px; color: var(--text-muted);">
-    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 16px; opacity: 0.5;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-    <h2 style="color: var(--text-heading); text-transform: uppercase; font-weight: 800; font-size: 1.4em; margin: 0 0 4px 0;">Willkommen im Hauptmenü</h2>
-    <p style="font-size: 0.9em; font-weight: 600;">Bereit für zukünftige Statistiken und Übersichten.</p>
+<div class="wealth-row">
+    <div class="chart-wrapper">
+        <div class="chart-header-row">
+            <span class="summary-title">Vermögensentwicklung (Trend)</span>
+            <div class="chart-tabs">
+                <button id="tab-hourly" class="tab-btn active">Hourly</button>
+                <button id="tab-daily" class="tab-btn">Daily</button>
+                <button id="tab-7day" class="tab-btn">7 Days</button>
+            </div>
+        </div>
+        <div id="chart-area" style="height:115px;"></div>
+    </div>
+    <div class="summary-card" style="justify-content: flex-start; gap: 8px;">
+        <div>
+            <span class="summary-title">Gesamtwert</span>
+            <div id="total-rsa" class="gold">0g</div>
+            <div id="delta-display" class="delta-text neutral">kein vorheriger Snapshot</div>
+        </div>
+        
+        <!-- NEU: Detaillierte Vermögensaufteilung -->
+        <div style="border-top: 1px solid var(--bg-border); padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85em;">
+                <span style="color: var(--text-muted); font-weight: 600;">Flüssiges Gold:</span>
+                <strong id="liquid-gold-display" style="color: #ffb400; font-family: monospace;">0g</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.85em;">
+                <span style="color: var(--text-muted); font-weight: 600;">Materialwert:</span>
+                <strong id="item-gold-display" style="color: var(--blue-light); font-family: monospace;">0g</strong>
+            </div>
+        </div>
+    </div>
 </div>
+<h2>Willkommen im Hauptmenü</h2>
+<p>Bereit für zukünftige Statistiken und Übersichten.</p>
