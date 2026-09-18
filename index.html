@@ -139,18 +139,36 @@
                     </table>
                 </div>
 				
-				<!-- ANSICHT: CHARAKTER LISTE -->
+				<!-- ANSICHT: CHARAKTER LISTE & KRIEGSMEUTE -->
 				<div id="page-characters" class="page-view hidden">
+					
+					<!-- OBERE TABELLE: REIN FÜR DIE KRIEGSMEUTEN-BANK -->
+					<h3 style="color: var(--text-dark); margin-bottom: 8px; font-size: 1.1em;">Accountweites Vermögen</h3>
+					<table style="width: 100%; margin-bottom: 24px;">
+						<thead>
+							<tr>
+								<th style="width: 33%;">Guthaben-Typ</th>
+								<th style="width: 33%;">Zugriff</th>
+								<th style="text-align: right; padding-right: 24px;">Flüssiges Gold</th>
+							</tr>
+						</thead>
+						<tbody id="warband-table-body">
+							<!-- Befüllt durch renderer-loader.js -->
+						</tbody>
+					</table>
+
+					<!-- UNTERE TABELLE: REIN FÜR DIE CHARAKTERE -->
+					<h3 style="color: var(--text-dark); margin-bottom: 8px; font-size: 1.1em;">Charakter-Aufschlüsselung</h3>
 					<table style="width: 100%;">
 						<thead>
 							<tr>
-								<th>Charaktername</th>
-								<th>Realm / Server</th>
+								<th style="width: 33%;">Charaktername</th>
+								<th style="width: 33%;">Realm / Server</th>
 								<th style="text-align: right; padding-right: 24px;">Flüssiges Gold</th>
 							</tr>
 						</thead>
 						<tbody id="character-table-body">
-							<!-- Durch renderer-loader.js befüllt -->
+							<!-- Befüllt durch renderer-loader.js -->
 						</tbody>
 					</table>
 				</div>

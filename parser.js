@@ -1,10 +1,10 @@
 /**
  * Robuster, hierarchischer LUA-Parser basierend auf Einrückungstiefe und Struktur-Kontext.
  * @param {string} fileContent - Der rohe Textinhalt der BankSnapshot.lua
- * @returns {Object} Das strukturierte JavaScript-Datenobjekt (realms, warband, names)
+ * @returns {Object} Das strukturierte JavaScript-Datenobjekt (realms, warband, names, warbandGold)
  */
 function cleanAndParseLua(fileContent) {
-    const data = { realms: {}, warband: {}, names: {} };
+    const data = { realms: {}, warband: {}, names: {}, warbandGold: 0 };
     
     // Entferne LUA-Kommentare und spalte den Inhalt in einzelne Zeilen
     const cleanContent = fileContent.replace(/--.*$/gm, '');
@@ -69,15 +69,14 @@ function cleanAndParseLua(fileContent) {
             return;
         }
 
-        // --- 3. WERTE-EXTRAKTION (ITEMS, GOLD & CACHE) ---
-        // Erkennt zuverlässig: ["1234"] = 5, [1234] = 5, gold = 500, ["gold"] = 500
+        // --- 3. WERTE-EXTRAKTION (ITEMS, CHAR-GOLD, KRIEGSMEITEN-GOLD & CACHE) ---
         const valueMatch = trimmed.match(/(?:\["([^"]+)"\]|\[(\d+)\]|([a-zA-Z0-9_]+))\s*=\s*(.*)/);
         if (valueMatch) {
             // Ermittle den gefundenen Schlüssel aus den Regex-Capture-Groups
             const key = valueMatch[1] || valueMatch[2] || valueMatch[3];
             let rawVal = valueMatch[4].replace(/,$/, '').trim();
             
-            // Bereinige eventuelle Anführungszeichen bei Text-Strings (z.B. Item-Namen)
+            // Bereinige eventuelle Anführungszeichen bei Text-Strings
             let cleanStrVal = rawVal.replace(/^["']|["']$/g, '');
 
             if (currentScope === 'NAMES') {
@@ -86,8 +85,11 @@ function cleanAndParseLua(fileContent) {
                 const itemId = parseInt(key, 10);
                 const qty = parseInt(rawVal, 10);
                 if (!isNaN(itemId) && !isNaN(qty)) data.warband[itemId] = qty;
+            } else if (key === 'warbandGold') {
+                // NEU: Extrahiert dein Kriegsmeuten-Bankgold auf globaler LUA-Ebene
+                data.warbandGold = parseFloat(rawVal) || 0;
             } else if (key === 'gold') {
-                // Liest das flüssige Gold im Charakter-Kontext unfehlbar aus
+                // Liest das flüssige Gold im Charakter-Kontext aus
                 if (currentRealm && currentCharacter) {
                     data.realms[currentRealm][currentCharacter].gold = parseInt(rawVal, 10) || 0;
                 }

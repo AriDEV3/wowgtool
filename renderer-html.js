@@ -109,20 +109,25 @@ globalThis.ItemHtmlBuilder = {
     },
 
     /**
-     * IMPLEMENTATION NEU: Baut eine vollständige Zeile für das Charakter-Gold-Dashboard zusammen.
-     * @param {string} charName - Der Name des WoW-Charakters
-     * @param {string} realmName - Der Server/Realm des Charakters
-     * @param {number} goldKupfer - Der rohe Kupferwert aus der LUA-Datei (10.000 Kupfer = 1 Gold)
+     * Baut eine vollständige Zeile für das Charakter-Gold-Dashboard zusammen.
      */
-    buildCharacterRow: function(charName, realmName, goldKupfer) {
-        // Sichere mathematische Konvertierung von Kupfer zu Gold
+    buildCharacterRow: function(charName, realmName, goldKupfer, isWarband) {
         const goldAmount = Math.floor((goldKupfer || 0) / 10000);
         
+        // Bestimme das Kapsel-Design: Gold-Verlauf für Kriegsmeute, Blau für normale Charaktere
+        let badgeStyle = isWarband 
+            ? 'background: linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(217, 119, 6, 0.15)); border: 1px solid #d97706; color: #b45309;'
+            : 'background: rgba(56, 189, 248, 0.1); border: 1px solid #2563eb; color: #1d4ed8;';
+            
+        let nameStyle = isWarband
+            ? 'color: #b45309; font-weight: 800; font-size: 1.15em;'
+            : 'color: var(--text-dark); font-weight: 700; font-size: 1.1em;';
+
         return `
-            <tr>
-                <td><strong style="color: var(--text-dark); font-size: 1.1em;">${charName}</strong></td>
+            <tr style="${isWarband ? 'background: rgba(251, 191, 36, 0.03); border-bottom: 2px solid rgba(217, 119, 6, 0.2);' : ''}">
+                <td><strong style="${nameStyle}">${charName}</strong></td>
                 <td>
-                    <span class="tag-compact-capsule" style="background: rgba(56, 189, 248, 0.1); border: 1px solid #2563eb; color: #1d4ed8; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: 600;">
+                    <span class="tag-compact-capsule" style="display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 12px; font-size: 0.85em; font-weight: 600; white-space: nowrap; ${badgeStyle}">
                         ${realmName}
                     </span>
                 </td>

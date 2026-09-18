@@ -17,7 +17,6 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
     let referenceSnapshot = null; 
     let bestDiff = Infinity;
 
-    // 14-Tage-Vergleichspunkt für die Sparklines ermitteln
     history.forEach(snap => {
         if (snap.rawTimestamp) {
             const snapTime = new Date(snap.rawTimestamp).getTime();
@@ -29,22 +28,35 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
         }
     });
 
-    // WICHTIG FÜR DEN 0g-FIX: Den unmittelbar letzten Snapshot für den direkten Vorher-Nachher-Vergleich holen
     const lastSnapshot = history.length > 0 ? history[history.length - 1] : null;
     const enrichedItems = [];
     
-    // --- 1. VOLUMENBERECHNUNG & CHARAKTERLISTE ---
+    // --- 1. VOLUMENBERECHNUNG & CHARAKTERLISTE (INKL. KRIEGSMEITEN-BANKGOLD) ---
     let totalCharacterGoldSum = 0;
     let totalItemGoldSum = 0; 
     const characterGoldList = [];
 
+    // Kriegsmeuten-Bankgold auswerten (falls im LUA vorhanden)
+    const rawWarbandGold = db && db.warbandGold ? parseFloat(db.warbandGold) : 0;
+    if (!isNaN(rawWarbandGold) && rawWarbandGold > 0) {
+        totalCharacterGoldSum += (rawWarbandGold / 10000); // Zu flüssigem Gesamtgold addieren
+        
+        // Virtuellen Eintrag für die Charakterliste im Frontend erzeugen
+        characterGoldList.push({
+            name: "Kriegsmeuten-Bank",
+            realm: "Account-Weit",
+            goldKupfer: rawWarbandGold
+        });
+    }
+
+    // Normales Charakter-Gold auswerten
     if (db && db.realms) {
         for (const [realmName, characters] of Object.entries(db.realms)) {
             for (const [charName, charData] of Object.entries(characters)) {
                 if (charData && charData.gold !== undefined) {
                     const rawGoldValue = parseFloat(charData.gold);
                     if (!isNaN(rawGoldValue)) {
-                        totalCharacterGoldSum += (rawGoldValue / 10000); // Kupfer -> Gold
+                        totalCharacterGoldSum += (rawGoldValue / 10000);
                         
                         characterGoldList.push({
                             name: charName,
@@ -57,6 +69,7 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
         }
     }
 
+    // Sortiert die Gesamtliste absteigend nach Goldbestand
     characterGoldList.sort((a, b) => b.goldKupfer - a.goldKupfer);
 
     // TSM-Marktwerte akkumulieren
@@ -68,12 +81,8 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
         totalItemGoldSum += (determinedPrice * item.totalQty); 
     }
 
-    // Aktueller mathematischer Gesamtwert
     const totalMixedGoldSum = totalCharacterGoldSum + totalItemGoldSum;
 
-    // --- KORREKTUR DER DELTA-LOGIK ---
-    // Wenn ein letzter Snapshot existiert, vergleichen wir den JETZIGEN Wert mit dem DIREKT LETZTEN Wert.
-    // Falls kein Snapshot existiert, ist das Delta logischerweise 0.
     const roundedCurrentValue = Math.round(totalMixedGoldSum);
     const roundedLastValue = lastSnapshot ? Math.round(lastSnapshot.value) : roundedCurrentValue;
     const deltaGold = roundedCurrentValue - roundedLastValue;
@@ -122,7 +131,7 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
         });
     }
 
-    // --- 3. HISTORIE AKTUALISIEREN ---
+    // --- 3. HISTORIE LOGGEN ---
     const currentDate = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
     const currentTime = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const isoString = new Date().toISOString();
@@ -130,8 +139,6 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
     const currentItemPrices = {};
     enrichedItems.forEach(i => { currentItemPrices[i.id] = i.dbRecentGold; });
 
-    // Wir loggen nur, wenn sich der Wert geändert hat, um die history_log.json schlank zu halten.
-    // Aber durch den obigen Fix berechnet sich das Delta nun unabhängig davon taggenau richtig!
     if (history.length === 0 || (lastSnapshot && Math.round(lastSnapshot.value) !== roundedCurrentValue)) {
         history.push({ 
             date: currentDate,
@@ -149,7 +156,7 @@ function processTrendsAndSnapshots(masterItemMap, priceMap, namesDb, db) {
         totalValue: totalMixedGoldSum,
         liquidGold: totalCharacterGoldSum,
         itemValue: totalItemGoldSum,
-        delta: deltaGold, // Liefert jetzt bei unveränderten Werten exakt 0 zurück
+        delta: deltaGold, 
         historyLog: history,
         characterList: characterGoldList
     };
