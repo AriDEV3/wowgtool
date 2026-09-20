@@ -1,0 +1,6 @@
+## Interface: 120100
+## Title: BankSnapshot
+## Notes: Speichert Charakter-, Realm- und Item-Daten für eine externe App.
+## SavedVariables: BankSnapshotDB
+
+BankSnapshot.lua
